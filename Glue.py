@@ -412,6 +412,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                                 user_command = usercom_dict[com_args[1]]
                                 user_command = user_command.replace('{{args}}', arguments) # replace with CL args
                                 user_command = user_command.replace('{{pwd}}', os.getcwd()) #  replace with working dir path
+                                user_command = user_command.replace('{{pwf}}', os.path.basename(__file__)) #replace with path + file.
                                 user_command = user_command.replace('{{clipboard}}', sublime.get_clipboard()) # replace with contents of clipboard
                                 self.muterun(user_command) # execute the command
                             else:

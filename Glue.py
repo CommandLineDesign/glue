@@ -49,7 +49,7 @@ class GlueCommand(sublime_plugin.TextCommand):
             st_buffer = 0 # flag that indicates use of buffer with unsaved terminal.glue file
             create_file = 0 # flag that indicates a new file should be generated to run the terminal view
             self.current_filepath = self.view.file_name() # file path if file exists and is saved, otherwise None
-
+            self.calling_filepath = self.view.file_name() # Save a separate var with this value for calling page replacement
             # check the settings to see if start directory is set
             if len(self.start_dirpath) == 0:
                 # if the buffer has been saved and the filepath exists
@@ -327,27 +327,6 @@ class GlueCommand(sublime_plugin.TextCommand):
                         # if there is a self.userpath that is set (user set in settings, previously set above) then set Python environ PATH string
                         the_path = self.userpath
                     self.view.run_command('glue_writer', {'text': the_path + '\n', 'command': glue_command, 'exit': False})
-                # TEMPLATE command
-                elif com_args[1] == "template":
-                    if len(com_args) > 2:
-                        template_name = ""
-                        template_filename = ""
-                        template_multi = False
-                        # test for the flag and name option in the user command
-                        for argument in com_args[2:]: # only test the arguments after the 'template' subcommand
-                            if "--multi" in argument:
-                                template_multi = True # user indicated that the file will specify multiple file paths
-                            elif argument.startswith('--name='):
-                                name_list = argument.split('=')
-                                template_filename = name_list[1] # the user assigned file write name of the file
-                            else:
-                                template_name = argument # if it is not one of the above options, then it is the requested template name
-                        print_string = template_name + " " + template_filename + " " + str(template_multi)
-                        self.view.run_command('glue_writer', {'text': print_string, 'command': glue_command, 'exit': False})
-                    else:
-                        # user did not enter a template name
-                        template_err_msg = "Please enter a template name after your command.\n"
-                        self.view.run_command('glue_writer', {'text': template_err_msg, 'command': glue_command, 'exit': False})
                 # USER command
                 elif com_args[1] == "user":
                     uc_file_path = os.path.join(sublime.packages_path(), 'Glue-Commands', 'glue.json')
@@ -412,7 +391,7 @@ class GlueCommand(sublime_plugin.TextCommand):
                                 user_command = usercom_dict[com_args[1]]
                                 user_command = user_command.replace('{{args}}', arguments) # replace with CL args
                                 user_command = user_command.replace('{{pwd}}', os.getcwd()) #  replace with working dir path
-                                user_command = user_command.replace('{{pwf}}', os.path.basename(__file__)) #replace with path + file.
+                                user_command = user_command.replace('{{pwf}}', self.calling_filepath)
                                 user_command = user_command.replace('{{clipboard}}', sublime.get_clipboard()) # replace with contents of clipboard
                                 self.muterun(user_command) # execute the command
                             else:
